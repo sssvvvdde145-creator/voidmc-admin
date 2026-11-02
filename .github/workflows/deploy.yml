@@ -1,0 +1,51 @@
+name: Deploy VOID MC
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Extract website
+        run: |
+          unzip -o admin-shop.zip -d extracted
+
+      - name: Configure Workers
+        run: |
+          for d in admin; do
+            sed -i 's/PASTE_YOUR_D1_DATABASE_ID_HERE/fd346acc-2ef1-4104-8d1e-cf44ba8e3d8d/' extracted/$d/wrangler.jsonc
+            sed -i 's/"compatibility_date":[[:space:]]*"[^"]*"/"compatibility_date": "2025-10-01"/' extracted/$d/wrangler.jsonc
+          done
+
+      - name: Install admin dependencies
+        working-directory: extracted/admin
+        run: npm install
+
+      - name: Deploy admin (admin.voidmc.bond)
+        working-directory: extracted/admin
+        run: npx wrangler deploy
+
+      - name: Set admin secrets
+        working-directory: extracted/admin
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: |
+          printf '%s' "$ADMIN_PASSWORD" | npx wrangler secret put ADMIN_PASSWORD
+          printf '%s' "$SESSION_SECRET" | npx wrangler secret put SESSION_SECRET
