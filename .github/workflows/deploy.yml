@@ -1,3 +1,4 @@
+
 name: Deploy VOID MC
 
 on:
@@ -36,6 +37,16 @@ jobs:
       - name: Install admin dependencies
         working-directory: extracted/admin
         run: npm install
+
+      - name: Check and Create R2 Bucket
+        working-directory: extracted/admin
+        run: |
+          if npx wrangler r2 bucket list | grep -Fq "voidmc-media"; then
+            echo "R2 bucket already exists."
+          else
+            echo "Creating R2 bucket..."
+            npx wrangler r2 bucket create voidmc-media
+          fi
 
       - name: Deploy admin (admin.voidmc.bond)
         working-directory: extracted/admin
