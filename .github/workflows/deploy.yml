@@ -1,5 +1,5 @@
 
-name: Deploy VOID MC
+name: Deploy VOID MC ADMIN
 
 on:
   push:
