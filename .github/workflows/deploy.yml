@@ -25,7 +25,7 @@ jobs:
 
       - name: Extract website
         run: |
-          unzip -o admin-shop.zip -d extracted
+          unzip -o xgencloud-admin.zip -d extracted
 
       - name: Configure Workers
         run: |
